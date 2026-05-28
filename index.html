@@ -21,7 +21,40 @@ input::placeholder{color:#5a547a}
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const{useState}=React;
+const{useState,useEffect}=React;
+
+// ── STORAGE HELPERS ──────────────────────────────────────────────────────────
+const WHO=()=>localStorage.getItem("hitster_who")||"";
+function load(key,def){try{const v=localStorage.getItem(key);return v!==null?JSON.parse(v):def;}catch{return def;}}
+function save(key,val){try{localStorage.setItem(key,JSON.stringify(val));}catch{}}
+
+function exportResults(){
+  const who=WHO()||"utilizador";
+  const rows=["set,titulo,artista,avaliacao,primeira_danca,notas"];
+  const allSets=[{label:"Acústico",data:ACOUSTIC},{label:"Banda",data:BAND}];
+  allSets.forEach(({label,data})=>{
+    data.forEach(s=>{
+      const key=`song_${label}_${s.artist}_${s.title}`;
+      const r=load(key,{rating:"",dance:false,notes:""});
+      if(r.rating||r.dance||r.notes)
+        rows.push([label,`"${s.title}"`,`"${s.artist}"`,r.rating,r.dance?"💍":"",`"${r.notes}"`].join(","));
+    });
+  });
+  const mSets=[{label:"Medley Acústico",data:ACOUSTIC_MEDLEYS},{label:"Medley Banda",data:BAND_MEDLEYS}];
+  mSets.forEach(({label,data})=>{
+    data.forEach(m=>{
+      const key=`medley_${label}_${m.name}`;
+      const r=load(key,{rating:"",notes:""});
+      if(r.rating||r.notes)
+        rows.push([label,`"${m.name}"`,`"${m.songs.length} músicas"`,r.rating,"",`"${r.notes}"`].join(","));
+    });
+  });
+  const blob=new Blob([rows.join("\n")],{type:"text/csv"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=`hitster_${who}_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
 
 function spotifyUrl(id){
   if(!id)return null;
@@ -307,11 +340,13 @@ function Btns({rating,setRating,dance,setDance,showDance}){
   );
 }
 
-function SongCard({song,index}){
+function SongCard({song,index,setLabel}){
+  const sKey=`song_${setLabel}_${song.artist}_${song.title}`;
   const[revealed,setRevealed]=useState(false);
-  const[rating,setRating]=useState("");
-  const[dance,setDance]=useState(false);
-  const[notes,setNotes]=useState("");
+  const[rating,setRating]=useState(()=>load(sKey,{rating:"",dance:false,notes:""}).rating);
+  const[dance,setDance]=useState(()=>load(sKey,{rating:"",dance:false,notes:""}).dance);
+  const[notes,setNotes]=useState(()=>load(sKey,{rating:"",dance:false,notes:""}).notes);
+  useEffect(()=>{save(sKey,{rating,dance,notes});},[rating,dance,notes]);
   const bc=rating==="❤️"?"rgba(255,45,85,0.3)":rating==="✓"?"rgba(34,201,122,0.3)":"rgba(255,255,255,0.05)";
   const bg=rating==="❤️"?"linear-gradient(135deg,#160409,#1e0810)":rating==="✓"?"linear-gradient(135deg,#040f09,#061410)":"linear-gradient(135deg,#0d0d18,#11111c)";
   return(
@@ -337,9 +372,11 @@ function SongCard({song,index}){
   );
 }
 
-function MedleyCard({medley}){
-  const[rating,setRating]=useState("");
-  const[notes,setNotes]=useState("");
+function MedleyCard({medley,setLabel}){
+  const mKey=`medley_${setLabel}_${medley.name}`;
+  const[rating,setRating]=useState(()=>load(mKey,{rating:"",notes:""}).rating);
+  const[notes,setNotes]=useState(()=>load(mKey,{rating:"",notes:""}).notes);
+  useEffect(()=>{save(mKey,{rating,notes});},[rating,notes]);
   const bc=rating==="❤️"?"rgba(255,45,85,0.35)":rating==="✓"?"rgba(34,201,122,0.35)":"rgba(255,200,0,0.12)";
   const bg=rating==="❤️"?"linear-gradient(135deg,#160409,#1e0810)":rating==="✓"?"linear-gradient(135deg,#040f09,#061410)":"linear-gradient(135deg,#0e0e1c,#111120)";
   const first=medley.songs[0];
@@ -382,6 +419,8 @@ function App(){
   const[tab,setTab]=useState("acoustic");
   const[mTab,setMTab]=useState("acoustic");
   const[guide,setGuide]=useState(false);
+  const[who,setWho]=useState(()=>localStorage.getItem("hitster_who")||"");
+  useEffect(()=>{localStorage.setItem("hitster_who",who);},[who]);
   const TABS=[{id:"acoustic",label:"🎻 Acústico",n:ACOUSTIC.length},{id:"band",label:"🎸 Banda",n:BAND.length},{id:"medleys",label:"🎭 Medleys",n:ACOUSTIC_MEDLEYS.length+BAND_MEDLEYS.length}];
   return(
     <div style={{minHeight:"100vh",background:"#080810",paddingBottom:60}}>
@@ -393,9 +432,19 @@ function App(){
           <div className="bebas" style={{fontSize:54,lineHeight:1,background:"linear-gradient(90deg,#a855f7,#ec4899,#38bdf8,#22c97a)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text",letterSpacing:2}}>HITSTER!</div>
           <div style={{fontSize:10,color:"#7c3aed",letterSpacing:4,textTransform:"uppercase",marginTop:1,fontWeight:600}}>Wedding Edition</div>
           <div style={{fontSize:13,color:"#7a6e90",fontStyle:"italic",marginTop:5}}>Cláudia &amp; João · 24 Julho 2026</div>
-          <button onClick={()=>setGuide(g=>!g)} style={{marginTop:12,background:"transparent",border:"1px solid #1e1e2e",color:"#8a82a0",borderRadius:20,padding:"5px 15px",fontSize:10,cursor:"pointer",letterSpacing:0.5}}>
-            {guide?"▲ fechar guia":"📋 como funciona"}
-          </button>
+          <div style={{marginTop:14,display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap",alignItems:"center"}}>
+            <select value={who} onChange={e=>setWho(e.target.value)} style={{background:"#14142a",border:"1px solid #2a2a4a",color:who?"#d0c0ff":"#6a6280",borderRadius:20,padding:"5px 14px",fontSize:11,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",outline:"none"}}>
+              <option value="">👤 quem sou eu?</option>
+              <option value="João">João</option>
+              <option value="Cláudia">Cláudia</option>
+            </select>
+            {who&&<button onClick={exportResults} style={{background:"linear-gradient(90deg,#6d28d9,#db2777)",border:"none",color:"#fff",borderRadius:20,padding:"5px 14px",fontSize:11,cursor:"pointer",fontWeight:600,letterSpacing:0.3}}>
+              ⬇ exportar resultados
+            </button>}
+            <button onClick={()=>setGuide(g=>!g)} style={{background:"transparent",border:"1px solid #1e1e2e",color:"#8a82a0",borderRadius:20,padding:"5px 14px",fontSize:10,cursor:"pointer",letterSpacing:0.5}}>
+              {guide?"▲ fechar guia":"📋 como funciona"}
+            </button>
+          </div>
         </div>
       </div>
       {/* GUIDE */}
@@ -417,7 +466,7 @@ function App(){
       <div style={{display:"flex",background:"#0b0b18",borderBottom:"1px solid #14142a",padding:"0 10px",position:"sticky",top:0,zIndex:10}}>
         {TABS.map(t=>(
           <button key={t.id} onClick={()=>setTab(t.id)} style={{flex:1,background:"none",border:"none",borderBottom:tab===t.id?"2.5px solid #a855f7":"2.5px solid transparent",color:tab===t.id?"#d0c0ff":"#8880a0",padding:"12px 2px",fontSize:11,fontWeight:tab===t.id?700:400,cursor:"pointer",transition:"all 0.2s",fontFamily:"'DM Sans',sans-serif"}}>
-            {t.label}<span style={{marginLeft:4,fontSize:9,background:tab===t.id?"rgba(168,85,247,0.12)":"transparent",borderRadius:8,padding:"1px 5px",color:tab===t.id?"#a855f7":"#2a2a3a"}}>{t.n}</span>
+            {t.label}<span style={{marginLeft:4,fontSize:9,background:tab===t.id?"rgba(168,85,247,0.12)":"transparent",borderRadius:8,padding:"1px 5px",color:tab===t.id?"#a855f7":"#6a6480"}}>{t.n}</span>
           </button>
         ))}
       </div>
@@ -428,8 +477,8 @@ function App(){
           {tab==="band"&&"Jantar · Festa · Pista de dança"}
           {tab==="medleys"&&"Sequências especiais · Votação por bloco"}
         </div>
-        {tab==="acoustic"&&<div style={{display:"flex",flexDirection:"column",gap:8}}>{ACOUSTIC.map((s,i)=><SongCard key={s.artist+s.title} song={s} index={i}/>)}</div>}
-        {tab==="band"&&<div style={{display:"flex",flexDirection:"column",gap:8}}>{BAND.map((s,i)=><SongCard key={s.artist+s.title} song={s} index={i}/>)}</div>}
+        {tab==="acoustic"&&<div style={{display:"flex",flexDirection:"column",gap:8}}>{ACOUSTIC.map((s,i)=><SongCard key={s.artist+s.title} song={s} index={i} setLabel="Acústico"/>)}</div>}
+        {tab==="band"&&<div style={{display:"flex",flexDirection:"column",gap:8}}>{BAND.map((s,i)=><SongCard key={s.artist+s.title} song={s} index={i} setLabel="Banda"/>)}</div>}
         {tab==="medleys"&&<div>
           <div style={{display:"flex",gap:8,marginBottom:12}}>
             {[{id:"acoustic",label:"🎻 Acústicos",n:ACOUSTIC_MEDLEYS.length},{id:"band",label:"🎸 Banda",n:BAND_MEDLEYS.length}].map(t=>(
@@ -438,8 +487,8 @@ function App(){
               </button>
             ))}
           </div>
-          {mTab==="acoustic"&&<div style={{display:"flex",flexDirection:"column",gap:10}}>{ACOUSTIC_MEDLEYS.map(m=><MedleyCard key={m.name} medley={m}/>)}</div>}
-          {mTab==="band"&&<div style={{display:"flex",flexDirection:"column",gap:10}}>{BAND_MEDLEYS.map(m=><MedleyCard key={m.name} medley={m}/>)}</div>}
+          {mTab==="acoustic"&&<div style={{display:"flex",flexDirection:"column",gap:10}}>{ACOUSTIC_MEDLEYS.map(m=><MedleyCard key={m.name} medley={m} setLabel="Medley Acústico"/>)}</div>}
+          {mTab==="band"&&<div style={{display:"flex",flexDirection:"column",gap:10}}>{BAND_MEDLEYS.map(m=><MedleyCard key={m.name} medley={m} setLabel="Medley Banda"/>)}</div>}
         </div>}
       </div>
       {/* FOOTER */}
