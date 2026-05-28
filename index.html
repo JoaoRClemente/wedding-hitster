@@ -10,12 +10,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{background:#080810;color:#e8e0f0;font-family:'DM Sans',sans-serif;min-height:100vh;overscroll-behavior:none}
-::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#111}::-webkit-scrollbar-thumb{background:#333;border-radius:2px}
+html,body{background:#080810;color:#e8e0f0;font-family:'DM Sans',sans-serif;min-height:100vh;overscroll-behavior:none;font-size:16px}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#111}::-webkit-scrollbar-thumb{background:#555;border-radius:2px}
 *{-webkit-tap-highlight-color:transparent}
 .bebas{font-family:'Bebas Neue',sans-serif}
-input{font-family:'DM Sans',sans-serif;color:#888;background:transparent;border:1px solid #1e1e2e;border-radius:8px;padding:6px 10px;font-size:11px;width:100%;outline:none}
-input::placeholder{color:#5a547a}
+input{font-family:'DM Sans',sans-serif;color:#ccc4e4;background:transparent;border:1px solid #2e2e4e;border-radius:8px;padding:8px 12px;font-size:14px;width:100%;outline:none}
+input::placeholder{color:#6a6490}
 </style>
 </head>
 <body>
@@ -340,29 +340,30 @@ function Btns({rating,setRating,dance,setDance,showDance}){
   );
 }
 
-function SongCard({song,index,setLabel}){
+function SongCard({song,index,setLabel,revealAll}){
   const sKey=`song_${setLabel}_${song.artist}_${song.title}`;
   const[revealed,setRevealed]=useState(false);
   const[rating,setRating]=useState(()=>load(sKey,{rating:"",dance:false,notes:""}).rating);
   const[dance,setDance]=useState(()=>load(sKey,{rating:"",dance:false,notes:""}).dance);
   const[notes,setNotes]=useState(()=>load(sKey,{rating:"",dance:false,notes:""}).notes);
   useEffect(()=>{save(sKey,{rating,dance,notes});},[rating,dance,notes]);
+  const isRevealed = revealAll || revealed;
   const bc=rating==="❤️"?"rgba(255,45,85,0.3)":rating==="✓"?"rgba(34,201,122,0.3)":"rgba(255,255,255,0.05)";
   const bg=rating==="❤️"?"linear-gradient(135deg,#160409,#1e0810)":rating==="✓"?"linear-gradient(135deg,#040f09,#061410)":"linear-gradient(135deg,#0d0d18,#11111c)";
   return(
     <div style={{background:bg,border:`1.5px solid ${bc}`,borderRadius:14,padding:"13px",display:"flex",gap:11,transition:"all 0.3s"}}>
-      <div style={{color:"#5a5470",fontSize:10,fontFamily:"monospace",minWidth:16,paddingTop:2}}>{String(index+1).padStart(2,"0")}</div>
+      <div style={{color:"#7a7490",fontSize:12,fontFamily:"monospace",minWidth:16,paddingTop:2}}>{String(index+1).padStart(2,"0")}</div>
       <a href={spotifyUrl(song.id)} target="_blank" rel="noopener noreferrer" style={{textDecoration:"none",flexShrink:0}}>
         <div style={{width:66,height:66,background:"#fff",borderRadius:8,overflow:"hidden"}}>
           <img src={qrUrl(song.id)} width={66} height={66} alt="QR" style={{display:"block"}} loading="lazy"/>
         </div>
-        <div style={{textAlign:"center",fontSize:9,color:"#a09ab8",marginTop:2}}>▶ spotify</div>
+        <div style={{textAlign:"center",fontSize:9,color:"#b0a8cc",marginTop:3}}>▶ spotify</div>
       </a>
       <div style={{flex:1,minWidth:0,display:"flex",flexDirection:"column",gap:7}}>
         <div onClick={()=>setRevealed(r=>!r)} style={{cursor:"pointer",userSelect:"none"}}>
-          {revealed
-            ?<div><div style={{fontSize:14,fontWeight:700,color:"#ede8ff",lineHeight:1.2,marginBottom:2}}>{song.title}{song.pt&&<PTBadge/>}</div><div style={{fontSize:11,color:"#9a92b0",fontWeight:300}}>{song.artist}</div></div>
-            :<div style={{background:"linear-gradient(90deg,#6d28d9,#db2777,#2563eb)",borderRadius:8,padding:"9px 12px",display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:14}}>🎵</span><div><div style={{fontSize:11,fontWeight:700,color:"#fff",letterSpacing:1.5,textTransform:"uppercase"}}>Toca e descobre</div><div style={{fontSize:9,color:"rgba(255,255,255,0.55)",marginTop:1}}>toca para revelar</div></div></div>
+          {isRevealed
+            ?<div><div style={{fontSize:16,fontWeight:700,color:"#ffffff",lineHeight:1.2,marginBottom:3}}>{song.title}{song.pt&&<PTBadge/>}</div><div style={{fontSize:14,color:"#b0a8cc",fontWeight:400}}>{song.artist}</div></div>
+            :<div style={{background:"linear-gradient(90deg,#6d28d9,#db2777,#2563eb)",borderRadius:8,padding:"9px 12px",display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:14}}>🎵</span><div><div style={{fontSize:13,fontWeight:700,color:"#fff",letterSpacing:1.5,textTransform:"uppercase"}}>Toca e descobre</div><div style={{fontSize:11,color:"rgba(255,255,255,0.65)",marginTop:2}}>toca para revelar</div></div></div>
           }
         </div>
         <Btns rating={rating} setRating={setRating} dance={dance} setDance={setDance} showDance={true}/>
@@ -387,14 +388,14 @@ function MedleyCard({medley,setLabel}){
           <div style={{width:66,height:66,background:"#fff",borderRadius:8,overflow:"hidden"}}>
             <img src={qrUrl(first.id)} width={66} height={66} alt="QR" style={{display:"block"}} loading="lazy"/>
           </div>
-          <div style={{textAlign:"center",fontSize:9,color:"#a09ab8",marginTop:2}}>▶ início</div>
+          <div style={{textAlign:"center",fontSize:9,color:"#b0a8cc",marginTop:3}}>▶ início</div>
         </a>
         <div style={{flex:1,minWidth:0}}>
           <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:5,flexWrap:"wrap"}}>
-            <span style={{fontSize:8,background:"rgba(255,200,0,0.1)",color:"#ffd700",borderRadius:4,padding:"2px 7px",letterSpacing:1,fontWeight:700,textTransform:"uppercase"}}>{medley.songs.length} músicas</span>
+            <span style={{fontSize:10,background:"rgba(255,200,0,0.1)",color:"#ffd700",borderRadius:4,padding:"2px 7px",letterSpacing:1,fontWeight:700,textTransform:"uppercase"}}>{medley.songs.length} músicas</span>
             {medley.pt&&<PTBadge/>}
           </div>
-          <div style={{fontSize:14,fontWeight:700,color:"#ede8ff",lineHeight:1.2,marginBottom:8}}>🎭 {medley.name}</div>
+          <div style={{fontSize:17,fontWeight:700,color:"#ffffff",lineHeight:1.2,marginBottom:8}}>🎭 {medley.name}</div>
           <Btns rating={rating} setRating={setRating} showDance={false}/>
         </div>
       </div>
@@ -403,8 +404,8 @@ function MedleyCard({medley,setLabel}){
           <div key={i} style={{display:"flex",alignItems:"baseline",gap:7,marginBottom:4}}>
             <span style={{fontSize:9,color:"#6a6280",fontFamily:"monospace",minWidth:14}}>{i+1}.</span>
             <a href={spotifyUrl(s.id)} target="_blank" rel="noopener noreferrer" style={{textDecoration:"none",display:"flex",alignItems:"center",gap:5,flexWrap:"wrap"}}>
-              <span style={{fontSize:12,color:"#bbb4d8",fontWeight:500}}>{s.title}</span>
-              <span style={{fontSize:10,color:"#8a82a0"}}>— {s.artist}</span>
+              <span style={{fontSize:14,color:"#d0c8f0",fontWeight:600}}>{s.title}</span>
+              <span style={{fontSize:13,color:"#a09ab8"}}>— {s.artist}</span>
               {s.pt&&<PTBadge/>}
             </a>
           </div>
@@ -419,6 +420,7 @@ function App(){
   const[tab,setTab]=useState("acoustic");
   const[mTab,setMTab]=useState("acoustic");
   const[guide,setGuide]=useState(false);
+  const[revealAll,setRevealAll]=useState(false);
   const[who,setWho]=useState(()=>localStorage.getItem("hitster_who")||"");
   useEffect(()=>{localStorage.setItem("hitster_who",who);},[who]);
   const TABS=[{id:"acoustic",label:"🎻 Acústico",n:ACOUSTIC.length},{id:"band",label:"🎸 Banda",n:BAND.length},{id:"medleys",label:"🎭 Medleys",n:ACOUSTIC_MEDLEYS.length+BAND_MEDLEYS.length}];
@@ -428,12 +430,16 @@ function App(){
       <div style={{background:"linear-gradient(160deg,#0b0b18,#100618,#0b0b18)",borderBottom:"1px solid #14142a",padding:"22px 18px 18px",textAlign:"center",position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",top:-50,left:-50,width:200,height:200,borderRadius:"50%",background:"radial-gradient(circle,rgba(109,40,217,0.18) 0%,transparent 70%)",pointerEvents:"none"}}/>
         <div style={{position:"absolute",top:-30,right:-30,width:160,height:160,borderRadius:"50%",background:"radial-gradient(circle,rgba(219,39,119,0.12) 0%,transparent 70%)",pointerEvents:"none"}}/>
+        {/* Reveal all toggle - top right */}
+        <button onClick={()=>setRevealAll(r=>!r)} style={{position:"absolute",top:14,right:14,background:revealAll?"rgba(168,85,247,0.2)":"rgba(255,255,255,0.05)",border:revealAll?"1.5px solid #a855f7":"1.5px solid #2a2a4a",color:revealAll?"#d0a0ff":"#8880a0",borderRadius:20,padding:"5px 12px",fontSize:12,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontWeight:600,zIndex:5,whiteSpace:"nowrap"}}>
+          {revealAll?"🙈 esconder":"👁 revelar tudo"}
+        </button>
         <div style={{position:"relative"}}>
           <div className="bebas" style={{fontSize:54,lineHeight:1,background:"linear-gradient(90deg,#a855f7,#ec4899,#38bdf8,#22c97a)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text",letterSpacing:2}}>HITSTER!</div>
-          <div style={{fontSize:10,color:"#7c3aed",letterSpacing:4,textTransform:"uppercase",marginTop:1,fontWeight:600}}>Wedding Edition</div>
-          <div style={{fontSize:13,color:"#7a6e90",fontStyle:"italic",marginTop:5}}>Cláudia &amp; João · 24 Julho 2026</div>
+          <div style={{fontSize:10,color:"#9d5ff5",letterSpacing:4,textTransform:"uppercase",marginTop:1,fontWeight:600}}>Wedding Edition</div>
+          <div style={{fontSize:13,color:"#9a8eb0",fontStyle:"italic",marginTop:5}}>Cláudia &amp; João · 24 Julho 2026</div>
           <div style={{marginTop:14,display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap",alignItems:"center"}}>
-            <select value={who} onChange={e=>setWho(e.target.value)} style={{background:"#14142a",border:"1px solid #2a2a4a",color:who?"#d0c0ff":"#6a6280",borderRadius:20,padding:"5px 14px",fontSize:11,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",outline:"none"}}>
+            <select value={who} onChange={e=>setWho(e.target.value)} style={{background:"#14142a",border:"1px solid #2a2a4a",color:who?"#d0c0ff":"#9090b0",borderRadius:20,padding:"5px 14px",fontSize:11,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",outline:"none"}}>
               <option value="">👤 quem sou eu?</option>
               <option value="João">João</option>
               <option value="Cláudia">Cláudia</option>
@@ -458,31 +464,31 @@ function App(){
         ].map(({i,t,d})=>(
           <div key={t} style={{display:"flex",gap:10,marginBottom:8,background:"#0f0f1e",borderRadius:10,padding:"10px 12px",border:"1px solid #1a1a2a"}}>
             <span style={{fontSize:16,flexShrink:0}}>{i}</span>
-            <div><div style={{fontSize:11,fontWeight:700,color:"#ccc4e4",marginBottom:2}}>{t}</div><div style={{fontSize:10,color:"#8a82a0",lineHeight:1.5}}>{d}</div></div>
+            <div><div style={{fontSize:11,fontWeight:700,color:"#e8e0ff",marginBottom:3}}>{t}</div><div style={{fontSize:10,color:"#a09ab8",lineHeight:1.5}}>{d}</div></div>
           </div>
         ))}
       </div>}
       {/* TABS */}
       <div style={{display:"flex",background:"#0b0b18",borderBottom:"1px solid #14142a",padding:"0 10px",position:"sticky",top:0,zIndex:10}}>
         {TABS.map(t=>(
-          <button key={t.id} onClick={()=>setTab(t.id)} style={{flex:1,background:"none",border:"none",borderBottom:tab===t.id?"2.5px solid #a855f7":"2.5px solid transparent",color:tab===t.id?"#d0c0ff":"#8880a0",padding:"12px 2px",fontSize:11,fontWeight:tab===t.id?700:400,cursor:"pointer",transition:"all 0.2s",fontFamily:"'DM Sans',sans-serif"}}>
-            {t.label}<span style={{marginLeft:4,fontSize:9,background:tab===t.id?"rgba(168,85,247,0.12)":"transparent",borderRadius:8,padding:"1px 5px",color:tab===t.id?"#a855f7":"#6a6480"}}>{t.n}</span>
+          <button key={t.id} onClick={()=>setTab(t.id)} style={{flex:1,background:"none",border:"none",borderBottom:tab===t.id?"2.5px solid #a855f7":"2.5px solid transparent",color:tab===t.id?"#d0c0ff":"#8880a0",padding:"12px 2px",fontSize:14,fontWeight:tab===t.id?700:400,cursor:"pointer",transition:"all 0.2s",fontFamily:"'DM Sans',sans-serif"}}>
+            {t.label}<span style={{marginLeft:4,fontSize:9,background:tab===t.id?"rgba(168,85,247,0.12)":"transparent",borderRadius:8,padding:"1px 5px",color:tab===t.id?"#c084fc":"#8880a0"}}>{t.n}</span>
           </button>
         ))}
       </div>
       {/* CONTENT */}
       <div style={{padding:"10px 12px 0"}}>
-        <div style={{fontSize:9,color:"#5a5a7a",textTransform:"uppercase",letterSpacing:2,marginBottom:10,fontWeight:600}}>
+        <div style={{fontSize:12,color:"#7a74a0",textTransform:"uppercase",letterSpacing:2,marginBottom:10,fontWeight:600}}>
           {tab==="acoustic"&&"Cocktail · Primeiras danças · Momentos íntimos"}
           {tab==="band"&&"Jantar · Festa · Pista de dança"}
           {tab==="medleys"&&"Sequências especiais · Votação por bloco"}
         </div>
-        {tab==="acoustic"&&<div style={{display:"flex",flexDirection:"column",gap:8}}>{ACOUSTIC.map((s,i)=><SongCard key={s.artist+s.title} song={s} index={i} setLabel="Acústico"/>)}</div>}
-        {tab==="band"&&<div style={{display:"flex",flexDirection:"column",gap:8}}>{BAND.map((s,i)=><SongCard key={s.artist+s.title} song={s} index={i} setLabel="Banda"/>)}</div>}
+        {tab==="acoustic"&&<div style={{display:"flex",flexDirection:"column",gap:8}}>{ACOUSTIC.map((s,i)=><SongCard key={s.artist+s.title} song={s} index={i} setLabel="Acústico" revealAll={revealAll}/>)}</div>}
+        {tab==="band"&&<div style={{display:"flex",flexDirection:"column",gap:8}}>{BAND.map((s,i)=><SongCard key={s.artist+s.title} song={s} index={i} setLabel="Banda" revealAll={revealAll}/>)}</div>}
         {tab==="medleys"&&<div>
           <div style={{display:"flex",gap:8,marginBottom:12}}>
             {[{id:"acoustic",label:"🎻 Acústicos",n:ACOUSTIC_MEDLEYS.length},{id:"band",label:"🎸 Banda",n:BAND_MEDLEYS.length}].map(t=>(
-              <button key={t.id} onClick={()=>setMTab(t.id)} style={{flex:1,background:mTab===t.id?"rgba(168,85,247,0.1)":"transparent",border:mTab===t.id?"1.5px solid rgba(168,85,247,0.35)":"1.5px solid #1a1a2a",color:mTab===t.id?"#c084fc":"#8880a0",borderRadius:10,padding:"10px 6px",fontSize:11,fontWeight:mTab===t.id?700:400,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>
+              <button key={t.id} onClick={()=>setMTab(t.id)} style={{flex:1,background:mTab===t.id?"rgba(168,85,247,0.1)":"transparent",border:mTab===t.id?"1.5px solid rgba(168,85,247,0.35)":"1.5px solid #1a1a2a",color:mTab===t.id?"#d0a0ff":"#a09ab8",borderRadius:10,padding:"10px 6px",fontSize:14,fontWeight:mTab===t.id?700:400,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>
                 {t.label} <span style={{fontSize:9,opacity:0.6}}>({t.n})</span>
               </button>
             ))}
@@ -492,7 +498,7 @@ function App(){
         </div>}
       </div>
       {/* FOOTER */}
-      <div style={{position:"fixed",bottom:0,left:0,right:0,background:"rgba(8,8,16,0.96)",backdropFilter:"blur(8px)",borderTop:"1px solid #14142a",padding:"7px 16px",display:"flex",justifyContent:"center",gap:14,fontSize:10}}>
+      <div style={{position:"fixed",bottom:0,left:0,right:0,background:"rgba(8,8,16,0.96)",backdropFilter:"blur(8px)",borderTop:"1px solid #14142a",padding:"7px 16px",display:"flex",justifyContent:"center",gap:14,fontSize:12}}>
         <span style={{color:"#ff2d55"}}>❤️ quero</span>
         <span style={{color:"#22c97a"}}>✓ pode</span>
         <span style={{color:"#8a82a0"}}>✗ não</span>
